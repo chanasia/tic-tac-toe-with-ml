@@ -19,10 +19,6 @@ function is_function(thing) {
 function safe_not_equal(a, b) {
     return a != a ? b == b : a !== b || ((a && typeof a === 'object') || typeof a === 'function');
 }
-
-function append(target, node) {
-    target.appendChild(node);
-}
 function insert(target, node, anchor) {
     target.insertBefore(node, anchor || null);
 }
@@ -237,10 +233,6 @@ class SvelteComponent {
 function dispatch_dev(type, detail) {
     document.dispatchEvent(custom_event(type, detail));
 }
-function append_dev(target, node) {
-    dispatch_dev("SvelteDOMInsert", { target, node });
-    append(target, node);
-}
 function insert_dev(target, node, anchor) {
     dispatch_dev("SvelteDOMInsert", { target, node, anchor });
     insert(target, node, anchor);
@@ -269,17 +261,6 @@ function attr_dev(node, attribute, value) {
     else
         dispatch_dev("SvelteDOMSetAttribute", { node, attribute, value });
 }
-function prop_dev(node, property, value) {
-    node[property] = value;
-    dispatch_dev("SvelteDOMSetProperty", { node, property, value });
-}
-function set_data_dev(text, data) {
-    data = '' + data;
-    if (text.data === data)
-        return;
-    dispatch_dev("SvelteDOMSetData", { node: text, data });
-    text.data = data;
-}
 class SvelteComponentDev extends SvelteComponent {
     constructor(options) {
         if (!options || (!options.target && !options.$$inline)) {
@@ -295,5 +276,5 @@ class SvelteComponentDev extends SvelteComponent {
     }
 }
 
-export { SvelteComponentDev as S, space as a, add_location as b, attr_dev as c, dispatch_dev as d, element as e, insert_dev as f, append_dev as g, set_data_dev as h, init as i, detach_dev as j, listen_dev as l, noop as n, prop_dev as p, run_all as r, safe_not_equal as s, text as t };
+export { SvelteComponentDev as S, space as a, add_location as b, attr_dev as c, dispatch_dev as d, element as e, insert_dev as f, detach_dev as g, init as i, listen_dev as l, noop as n, run_all as r, safe_not_equal as s, text as t };
 //# sourceMappingURL=bundle2.js.map
