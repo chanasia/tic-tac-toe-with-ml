@@ -1,44 +1,30 @@
-<style>
-	input {
-	  width: 5em;
-	}
-</style>
-
-<script lang="ts">
-		let c: number = 0;
-		let f: number = 32;
-		let fahrenheit: number = 0;
-		let celcius: number = 0;
-		$: fahrenheit = parseInt((32 + (9 / 5) * c).toFixed(1), 10);
-		$: celcius = parseInt(((5 / 9) * (f - 32)).toFixed(1), 10);
-
-		// this should work! Right?
-		function setBothFromC(value: number) {
-		  c = +value;
-		  // f = +(32 + (9 / 5) * c).toFixed(1);
-		}
-
-		function setBothFromF(value: number) {
-		  f = +value;
-		  // c = +((5 / 9) * (f - 32)).toFixed(1);
-		}
-
-		const generateRandomNumber = (): string => {
-		  let text: string = "";
-
-		  let possible: string = "0123456789";
-		  let i: number = 0;
-
-		  for (i = 0; i < 4; i++) {
-		    text += possible.charAt(Math.floor(Math.random() * possible.length));
-		    console.log(text);
-		  }
-		  return text;
-		};
+<script>
+	export let name;
 </script>
 
-<div>C: {celcius}</div>
-<div>F: {fahrenheit}</div>
-<div>{ generateRandomNumber() }</div>
-<input value={celcius} on:input="{e => setBothFromC(e.target.value)}" type=number> °c =
-<input value={fahrenheit} on:input="{e => setBothFromF(e.target.value)}" type=number> °f
+<main>
+	<h1>Hello {name}!</h1>
+	<p>Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte apps.</p>
+</main>
+
+<style>
+	main {
+		text-align: center;
+		padding: 1em;
+		max-width: 240px;
+		margin: 0 auto;
+	}
+
+	h1 {
+		color: #ff3e00;
+		text-transform: uppercase;
+		font-size: 4em;
+		font-weight: 100;
+	}
+
+	@media (min-width: 640px) {
+		main {
+			max-width: none;
+		}
+	}
+</style>

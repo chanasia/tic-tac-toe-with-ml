@@ -1,72 +1,76 @@
-// Based off of "Using Native Javascript Modules in Production Today" by Philip Walton:
-//   - https://philipwalton.com/articles/using-native-javascript-modules-in-production-today/
-//   - https://github.com/philipwalton/rollup-native-modules-boilerplate/blob/master/rollup.config.js
-import path from "path";
+import svelte from 'rollup-plugin-svelte';
+import commonjs from '@rollup/plugin-commonjs';
+import resolve from '@rollup/plugin-node-resolve';
+import livereload from 'rollup-plugin-livereload';
+import { terser } from 'rollup-plugin-terser';
+import css from 'rollup-plugin-css-only';
 
-// import json from "rollup-plugin-json";
-import svelte from "rollup-plugin-svelte";
-import nodeResolve from "rollup-plugin-node-resolve";
-import commonjs from "rollup-plugin-commonjs";
-import typescript from "rollup-plugin-typescript2";
-import * as tscompile from "typescript";
-import sourceMaps from "rollup-plugin-sourcemaps";
-// import { eslint } from "rollup-plugin-eslint";
-import serve from "rollup-plugin-serve";
+const production = !process.env.ROLLUP_WATCH;
 
-// import prettier from "rollup-plugin-prettier";
+function serve() {
+	let server;
 
-// The typescript plugin by Rollup does _not_ do any type checking (wtf?). This plugin seems to be
-// the most standard alternative which supports all of the TypeScript goodness
+	function toExit() {
+		if (server) server.kill(0);
+	}
+
+	return {
+		writeBundle() {
+			if (server) return;
+			server = require('child_process').spawn('npm', ['run', 'start', '--', '--dev'], {
+				stdio: ['ignore', 'inherit', 'inherit'],
+				shell: true
+			});
+
+			process.on('SIGTERM', toExit);
+			process.on('exit', toExit);
+		}
+	};
+}
 
 export default {
-  input: { app: "src/index.ts" },
-  // input: "src/index.ts",
-  output: {
-    // file: "dist/index.js",
-    // format: "iife",
-    dir: "dist",
-    format: "esm",
-    entryFileNames: "bundle.js",
-    chunkFileNames: "bundle.js",
-    sourcemap: true
-  },
-  plugins: [
-    // json(),
-    commonjs(),
-    typescript({ typescript: tscompile, clean: true }),
-    svelte({
-      dev: true,
-      extensions: [".svelte"],
-      preprocess: require("./svelte.config.js").preprocess,
-      css: false
-    }),
-    nodeResolve({ browser: true }),
-    // eslint(),
-    sourceMaps(),
-    serve({
-      contentBase: ["dist", "static"],
-      port: 8080,
-      headers: {
-        "Access-Control-Allow-Origin": "*"
-      }
-    })
-  ],
-  manualChunks(id) {
-    if (id.includes("node_modules")) {
-      // The directory name following the last `node_modules`.
-      // Usually this is the package, but it could also be the scope.
-      const directories = id.split(path.sep);
-      const name = directories[directories.lastIndexOf("node_modules") + 1];
+	input: 'src/main.js',
+	output: {
+		sourcemap: true,
+		format: 'iife',
+		name: 'app',
+		file: 'public/build/bundle.js'
+	},
+	plugins: [
+		svelte({
+			compilerOptions: {
+				// enable run-time checks when not in production
+				dev: !production
+			}
+		}),
+		// we'll extract any component CSS out into
+		// a separate file - better for performance
+		css({ output: 'bundle.css' }),
 
-      // Group `tslib` and `dynamic-import-polyfill` into the default bundle.
-      // NOTE: This isn't strictly necessary for this app, but it's included
-      // to show how to manually keep deps in the default chunk.
-      // if (name === 'tslib' || name === 'dynamic-import-polyfill') {
-      //   return;
-      // }
+		// If you have external dependencies installed from
+		// npm, you'll most likely need these plugins. In
+		// some cases you'll need additional configuration -
+		// consult the documentation for details:
+		// https://github.com/rollup/plugins/tree/master/packages/commonjs
+		resolve({
+			browser: true,
+			dedupe: ['svelte']
+		}),
+		commonjs(),
 
-      // Otherwise just return the name.
-      return name;
-    }
-  }
+		// In dev mode, call `npm run start` once
+		// the bundle has been generated
+		!production && serve(),
+
+		// Watch the `public` directory and refresh the
+		// browser on changes when not in production
+		!production && livereload('public'),
+
+		// If we're building for production (npm run build
+		// instead of npm run dev), minify
+		production && terser()
+	],
+	watch: {
+		clearScreen: false
+	}
 };
